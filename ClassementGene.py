@@ -12,7 +12,7 @@ import localsolver
 import sys
 
 
-wij_table = (np.loadtxt("./Gene/Gurobi/instances/Gene50_40.txt",delimiter=',')).tolist()
+wij_table = (np.loadtxt("./Gene_Experiment/Gurobi/instances/Gene50_40.txt",delimiter=',')).tolist()
 
 nbGene = len(wij_table)
 start = [x for x in range(0, nbGene)] # 0 -> 9
