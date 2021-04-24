@@ -8,7 +8,7 @@ Created on Sun Apr 18 03:59:14 2021
 import gurobipy
 import numpy as np
 import pandas as pd
-import time
+import os
 #导入gurobi库
 
 class Gurobi_Gene:
@@ -229,14 +229,14 @@ class Gurobi_Gene:
 if __name__ == '__main__':
     
     Gene_rank1 = Gurobi_Gene()
-    Gene_rank1.importInstance("./Gene_Experiment/Gurobi/instances/Gene100_80.txt")
+    Gene_rank1.importInstance("./Gene_Experiment/GeneTP/Gene200_100.txt")
     print(Gene_rank1.wij_table)
     Gene_rank1.parametrageModel()
     print(Gene_rank1.PrintResult("Formulation1"))
     # print(Gene_rank1.calculAllFormulationTimes())
-   
-    
 
+    # /Gene_Experiment/Gurobi
+    # print(os.getcwd())
 
 
 
