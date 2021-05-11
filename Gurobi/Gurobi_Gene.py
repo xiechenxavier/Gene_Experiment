@@ -9,7 +9,6 @@ import gurobipy
 import numpy as np
 import pandas as pd
 import os
-#导入gurobi库
 
 class Gurobi_Gene:
     
@@ -41,10 +40,14 @@ class Gurobi_Gene:
         self.x = self.m.addVars(self.index, self.columns, vtype=gurobipy.GRB.BINARY)
         # objectif function
         self.m.setObjective(gurobipy.quicksum(self.x[i, j] * self.packed_wij.at[i, j] 
-                                              for i in self.index for j in self.columns),sense=gurobipy.GRB.MAXIMIZE)
+                                              for i in self.index for j in self.columns),
+                                                sense=gurobipy.GRB.MAXIMIZE)
         
     # les contraintes principales contiennent constraint 1,2
     def constraintPrincipal(self):
+        '''
+        les contraintes principales contiennent constraint 1,2
+        '''
         x = self.x
         for i in range(0,len(self.index)):
             for j in range(0, len(self.columns)):
@@ -122,7 +125,7 @@ class Gurobi_Gene:
                         # new constraint 7
                         self.m.addConstr(self.y[i,j] + self.y[k,j] + self.y[i,k] + self.x[k,i] - self.x[k,j] <= 1)
                         
-    #Formulation5: 1，12，4，5
+    #Formulation5: 1,15-18,4,5
     def Formulation5(self):
         self.x = self.m.addVars(self.index, self.columns, vtype=gurobipy.GRB.BINARY)
         # new constraint 1
@@ -168,7 +171,7 @@ class Gurobi_Gene:
      
         
     def PrintResult(self,Formulation):
-        #应用哪个求解公式求解
+        #qulle formulation va etre appliqué
         if(Formulation == 'Formulation1'):
             self.Formulation1()
         elif(Formulation == 'Formulation2'):
@@ -179,24 +182,26 @@ class Gurobi_Gene:
             self.Formulation4()
         elif(Formulation == 'Formulation5'):
             self.Formulation5()
-            
+        #parametrer un temps limite pour sortir
         self.m.Params.TimeLimit=2000
-        #求解正式开始，测试求解时间
+        #solver commence à optimiser et il faut aussi compter le temps du calcul
         self.m.optimize()
         
         print("it took ",self.m.Runtime,"s to solve")
-         # 输出信息
-        dfresult = self.packed_wij * 0
+        # afficher les informations des solutions
+        dfresult = self.packed_wij * 0 #dfresult permet de stocker les variables de decision ayant la valeur 1
+        # trouver une solution optimale
         if self.m.status == gurobipy.GRB.Status.OPTIMAL:
             solution = [k for k, v in self.m.getAttr('x', self.x).items() if v == 1]
             for i, j in solution:
-            # print(f"{i} -> {j}：{cost_matrix.at[i,j]}")
                 dfresult.at[j, i] = 1
+        # extraire le matrix des resultats de "dfresult"
         result = ([[int(ele) for ele in lis]for lis in dfresult.values])
+        # compter le somme de wij = 1 de chaque ligne (tant que i est le meme)
         sommtab = [(sum(l)) for l in result]
-        # print(result)
-        classement = [sommtab.index(i)+1 for i in range(0,self.taille)]
-        return classement
+        # gagne le classement consensus par l'ordre desascendu de tous les sommes
+        # classement = [sommtab.index(i)+1 for i in range(0,self.taille)]
+        return sommtab
     
     
     def getImportantInfoSolution(self,form):
@@ -211,16 +216,19 @@ class Gurobi_Gene:
         elif(form == 'Formulation5'):
             self.Formulation5()   
         self.m.Params.TimeLimit=300
-        #求解正式开始，测试求解时间
+        #solver commence à optimiser et il faut aussi compter le temps du calcul
         self.m.optimize()
         objective_value = self.m.objVal
         calcul_temps = self.m.Runtime
+        #retourne le tuple (obj_val, calcul_temps)
         return objective_value,calcul_temps
     
     
     def calculAllFormulationTimes(self):
+        #lister toutes les formulations
         Formulations = ['Formulation1','Formulation2','Formulation3','Formulation4','Formulation5']
-        SolvingInfos = []
+        SolvingInfos = []    #tableau permet de stocker les infos de solutions
+        #parcours de comptutation par toutes les formulations
         for form in Formulations:
             self.m.reset(0)
             SolvingInfos.append(self.getImportantInfoSolution(form))
@@ -229,10 +237,10 @@ class Gurobi_Gene:
 if __name__ == '__main__':
     
     Gene_rank1 = Gurobi_Gene()
-    Gene_rank1.importInstance("./Gene_Experiment/GeneTP/Gene200_100.txt")
+    Gene_rank1.importInstance("./Gene_Experiment/GeneTP/instances/Gene200_1000.txt")
     print(Gene_rank1.wij_table)
     Gene_rank1.parametrageModel()
-    print(Gene_rank1.PrintResult("Formulation1"))
+    print(Gene_rank1.PrintResult("Formulation2"))
     # print(Gene_rank1.calculAllFormulationTimes())
 
     # /Gene_Experiment/Gurobi
